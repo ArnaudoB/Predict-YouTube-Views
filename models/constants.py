@@ -1,4 +1,4 @@
-n_features_tabular = 31
+n_features_tabular = 30
 clip_dim = 512
 bert_dim = 768
-n_features = 2*clip_dim + bert_dim + n_features_tabular # = 1873
+n_features = clip_dim + n_features_tabular

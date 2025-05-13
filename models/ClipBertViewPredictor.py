@@ -1,5 +1,5 @@
-from models.RegressorHead import RegressorHead
-from models.ClipBertEncoder import ClipBertEncoder
+from RegressorHead import RegressorHead
+from ClipBertEncoder import ClipBertEncoder
 import torch
 import torch.nn as nn
 from constants import n_features
@@ -13,10 +13,8 @@ class ClipBertViewPredictor(nn.Module):
     def forward(self, x):
         # Get the features from the encoder
         features = self.clipbert_encoder(x)
-
         # Concatenate the features from image, title, and description
         midput = torch.cat([features, x["tabular"]], dim=1)  # Concatenate along the feature dimension
-        
         # Pass the features through the regression head
         output = self.regression_head(midput)
         
