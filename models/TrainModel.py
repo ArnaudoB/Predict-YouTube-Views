@@ -12,7 +12,7 @@ def custom_msle_loss(y_true, y_pred): # to change after for efficiency
     y_pred = torch.exp(y_pred) - 1
     return torch.mean((torch.log1p(y_true) - torch.log1p(y_pred))**2)
 
-def train_model(model, train_dataset, val_dataset, epochs=2, lr=1e-4, batch_size=32):
+def train_model(model, train_dataset, val_dataset, epochs=20, lr=1e-4, batch_size=32):
 
     training_losses = []
     validation_losses = []
@@ -147,6 +147,8 @@ if __name__ == '__main__':
     val_data = Dataset("./dataset/processed_validation_set.csv")
     model = ClipBertViewPredictor()
     train_losses, val_losses = train_model(model, training_data, val_data)
+    # Save the model
+    torch.save(model.state_dict(), './models/first_model.pth')
     #dic, test_losses = test_model(model, val_data)
     #print(dic["msle"])
 
