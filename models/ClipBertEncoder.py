@@ -7,8 +7,9 @@ class ClipBertEncoder(nn.Module):
     def __init__(self, frozen=False):
         super().__init__()
 
-        self.mclip_model = CLIPModel.from_pretrained("M-CLIP/M-BERT-Base-ViT-B") 
-        self.mclip_processor = CLIPProcessor.from_pretrained("M-CLIP/M-BERT-Base-ViT-B")
+        self.mclip_model = CLIPModel.from_pretrained("M-CLIP/LABSE-ViT-B-32") 
+        self.mclip_processor = CLIPProcessor.from_pretrained("M-CLIP/LABSE-ViT-B-32")
+
         
         
         #self.clip_model, self.clip_preprocess = clip.load("ViT-B/32") # for image and title processing
@@ -21,7 +22,7 @@ class ClipBertEncoder(nn.Module):
         # self.text_tokenizer = AutoTokenizer.from_pretrained("distilbert-base-uncased")
         
         # Get dimensions
-        self.img_dim = self.mclip_model.vision_model.config.hidden_size  # 768 for ViT-B
+        self.img_dim = self.mclip_model.vision_model.config.hidden_size  # 512 for ViT-B-32
         self.title_dim = self.mclip_model.text_model.config.hidden_size  # 768 for M-BERT
         self.desc_dim = self.text_model.config.hidden_size  # 768 for BERT
         
@@ -43,17 +44,14 @@ class ClipBertEncoder(nn.Module):
         
     
     def encode_image(self, image):
-
-        # process image with CLIP
-        image_features = self.clip_model.encode_image(image)
-        return image_features
+        inputs = self.mclip_processor(images=image, return_tensors="pt")
+        outputs = self.mclip_model.get_image_features(**inputs)
+        return outputs
     
     def encode_title(self, titles):
-
-        # process title with CLIP's text encoder
-        text_tokens = clip.tokenize(titles).to(next(self.clip_model.parameters()).device)
-        title_features = self.clip_model.encode_text(text_tokens)
-        return title_features
+        inputs = self.clip_processor(text=titles, return_tensors="pt", padding=True, truncation=True)
+        outputs = self.clip_model.get_text_features(**inputs)
+        return outputs
     
     def encode_description(self, descriptions):
 
