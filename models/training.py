@@ -166,7 +166,8 @@ def train_model(model, train_dataset, val_dataset, epochs=5, lr=1e-3, batch_size
 
 if __name__ == '__main__':
     # Train and test
-    training_data = YouTubeDataset()
+    ratio = 0.5
+    training_data = YouTubeDataset(ratio=ratio, csv_path="./dataset/processed_training_set.csv", root_dir="./dataset/train_val/")
     val_data = YouTubeDataset("./dataset/processed_validation_set.csv", "./dataset/train_val/")
     model = ClipBertViewPredictor()
 

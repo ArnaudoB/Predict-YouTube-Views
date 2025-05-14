@@ -6,8 +6,9 @@ import numpy as np
 from torchvision import transforms
 
 class YouTubeDataset(Dataset):
-    def __init__(self, csv_path="./dataset/processed_training_set.csv", root_dir="./dataset/train_val/"):
+    def __init__(self, csv_path="./dataset/processed_training_set.csv", root_dir="./dataset/train_val/", ratio=1.0):
         self.df = pd.read_csv(csv_path, sep=";")
+        self.df = self.df.sample(frac=ratio, random_state=42)
         self.root_dir = root_dir
 
         self.tabular_columns = [col for col in self.df.columns if col not in ['title', 'description', 'id', 'logviews']]
