@@ -17,7 +17,7 @@ class Dataset():
         df = pd.read_csv(self.set, sep=";")
 
         # load a small part of the dataset for testing :
-        df = df.sample(10)
+        df = df.sample(1000)
 
         tabular_columns = [col for col in df.columns if col not in ['title', 'description', 'id', 'logviews']]
         
