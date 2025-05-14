@@ -60,7 +60,7 @@ def train_model(model, train_dataset, val_dataset, epochs=5, lr=1e-3, batch_size
             targets = batch["target"].to(device)
 
             optimizer.zero_grad()
-            outputs = model(inputs).squeeze() # Why ?
+            outputs = model(inputs).view(-1)
             loss = criterion(outputs, targets)
             loss.backward()
             optimizer.step()
@@ -88,7 +88,7 @@ def train_model(model, train_dataset, val_dataset, epochs=5, lr=1e-3, batch_size
                           for k, v in batch.items() if k != "target"}
                 targets = batch["target"].to(device)
 
-                outputs = model(inputs).squeeze()
+                outputs = model(inputs).view(-1)
                 loss = criterion(outputs, targets)
 
                 val_loss += loss.item()
