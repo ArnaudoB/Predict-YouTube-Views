@@ -1,35 +1,30 @@
 import torch
+from sentence_transformers import SentenceTransformer
 import torch.nn as nn
-import clip
-from transformers import AutoTokenizer, AutoModel, CLIPProcessor, CLIPModel
+from transformers import BertTokenizer, BertModel, CLIPProcessor, CLIPModel
 
 class ClipBertEncoder(nn.Module):
     def __init__(self, frozen=False):
         super().__init__()
 
-        self.clip_model = CLIPModel.from_pretrained("sentence-transformers/clip-ViT-B-32-multilingual-v1") 
-        self.clip_processor = CLIPProcessor.from_pretrained("sentence-transformers/clip-ViT-B-32-multilingual-v1")
+        self.img_model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32") # multimodal but we only use the image part
+        self.img_processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 
+        self.text_model = SentenceTransformer('sentence-transformers/clip-ViT-B-32-multilingual-v1') # for the title
+        
+        
+        self.descmodel = BertModel.from_pretrained("bert-base-multilingual-cased")
+        self.tokenizer = BertTokenizer.from_pretrained('bert-base-multilingual-cased')
 
-        
-        
-        #self.clip_model, self.clip_preprocess = clip.load("ViT-B/32") # for image and title processing
-        
-        
-        self.text_model = AutoModel.from_pretrained("bert-base-multilingual-cased")
-        self.text_tokenizer = AutoTokenizer.from_pretrained("bert-base-multilingual-cased")
-
-        # self.text_model = AutoModel.from_pretrained("distilbert-base-uncased") # for longer descriptions
-        # self.text_tokenizer = AutoTokenizer.from_pretrained("distilbert-base-uncased")
         
         # Get dimensions
-        self.img_dim = self.mclip_model.vision_model.config.hidden_size  # 512 for ViT-B-32
-        self.title_dim = self.mclip_model.text_model.config.hidden_size  # 768 for M-BERT
-        self.desc_dim = self.text_model.config.hidden_size  # 768 for BERT
+        self.img_dim = 512
+        self.title_dim = 512 
+        self.desc_dim = 768
         
         # Freeze backbone models if specified
         if frozen:
-            for param in self.clip_model.parameters():
+            for param in self.mclip_model.parameters():
                 param.requires_grad = False
             for param in self.text_model.parameters():
                 param.requires_grad = False
@@ -43,28 +38,21 @@ class ClipBertEncoder(nn.Module):
             nn.ReLU()
         )
         
-    
-    def encode_image(self, image):
-        inputs = self.clip_processor(images=image, return_tensors="pt")
-        outputs = self.clip_model.get_image_features(**inputs)
-        return outputs
+    def encode_image(self, images):
+        inputs = self.img_processor(images=images, return_tensors="pt")
+        img_feat = self.img_model.get_image_features(**inputs)
+        return img_feat
     
     def encode_title(self, titles):
-        inputs = self.clip_processor(text=titles, return_tensors="pt", padding=True, truncation=True)
-        outputs = self.clip_model.get_text_features(**inputs)
-        return outputs
+        encoded_titles = self.text_model.encode(titles)
+        return encoded_titles
     
     def encode_description(self, descriptions):
 
-        # process longer description with DistilBERT
-        inputs = self.text_tokenizer(descriptions, padding=True, truncation=True, 
-                                     return_tensors="pt").to(next(self.text_model.parameters()).device)
-        outputs = self.text_model(**inputs)
-            
-        # use mean pooling for the description (another option is to use CLS token but less stable in practice)
-        desc_features = outputs.last_hidden_state.mean(dim=1)
-        
-        # project to match CLIP dimensions
+        encoded_input = self.tokenizer(descriptions, return_tensors='pt')
+        output = self.descmodel(**encoded_input)
+
+        desc_features = output.last_hidden_state.mean(dim=1)
         desc_features = self.desc_projector(desc_features)
         return desc_features
     

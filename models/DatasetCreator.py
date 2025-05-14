@@ -4,6 +4,7 @@ from PIL import Image
 import clip
 import pandas as pd
 from tqdm import tqdm
+from torchvision import transforms
 
 class Dataset():
     
@@ -12,19 +13,26 @@ class Dataset():
         self.data = self.create_dataset()
     
     def create_dataset(self):
-        _, preprocess = clip.load("ViT-B/32", device="cuda" if torch.cuda.is_available() else "cpu")
+
+        transform = transforms.Compose([
+        transforms.Resize(224),
+        transforms.CenterCrop(224),
+        transforms.ToTensor(),  # → met l'image dans [0,1]
+        ])
+        #_, preprocess = clip.load("ViT-B/32", device="cuda" if torch.cuda.is_available() else "cpu")
         df = pd.read_csv(self.set, sep=";")
 
         # load a small part of the dataset for testing :
-        df = df.sample(50)
+        df = df.sample(10)
 
         tabular_columns = [col for col in df.columns if col not in ['title', 'description', 'id', 'logviews']]
         
         dataset = []
         for _, row in tqdm(df.iterrows(), total=len(df)):
             image = Image.open("./dataset/train_val/"+row['id']+".jpg").convert("RGB")
+
             sample = {
-                "image": preprocess(image),
+                "image": transform(image),
                 "title": row['title'],
                 "description": row['description'],
                 "tabular": torch.tensor(row[tabular_columns].values.astype(np.float32)),
