@@ -7,8 +7,9 @@ class ClipBertEncoder(nn.Module):
     def __init__(self, frozen=False):
         super().__init__()
 
-        self.mclip_model = CLIPModel.from_pretrained("M-CLIP/LABSE-ViT-B-32") 
-        self.mclip_processor = CLIPProcessor.from_pretrained("M-CLIP/LABSE-ViT-B-32")
+        self.clip_model = CLIPModel.from_pretrained("sentence-transformers/clip-ViT-B-32-multilingual-v1") 
+        self.clip_processor = CLIPProcessor.from_pretrained("sentence-transformers/clip-ViT-B-32-multilingual-v1")
+
 
         
         
@@ -44,8 +45,8 @@ class ClipBertEncoder(nn.Module):
         
     
     def encode_image(self, image):
-        inputs = self.mclip_processor(images=image, return_tensors="pt")
-        outputs = self.mclip_model.get_image_features(**inputs)
+        inputs = self.clip_processor(images=image, return_tensors="pt")
+        outputs = self.clip_model.get_image_features(**inputs)
         return outputs
     
     def encode_title(self, titles):
