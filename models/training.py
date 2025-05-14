@@ -168,7 +168,7 @@ if __name__ == '__main__':
     # Train and test
     ratio = 0.5
     training_data = YouTubeDataset(ratio=ratio, csv_path="./dataset/processed_training_set.csv", root_dir="./dataset/train_val/")
-    val_data = YouTubeDataset("./dataset/processed_validation_set.csv", "./dataset/train_val/")
+    val_data = YouTubeDataset("./dataset/processed_validation_set.csv", "./dataset/train_val/", ratio=ratio)
     model = ClipBertViewPredictor()
 
     epochs = 12
