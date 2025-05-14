@@ -45,7 +45,7 @@ def train_model(model, train_dataset, val_dataset, epochs=5, lr=1e-3, batch_size
     best_val_loss = float('inf')
     counter = 0 # Early stopping counter
 
-    val_loader = DataLoader(val_dataset, batch_size=batch_size, collate_fn=collate_fn, num_workers=4, shuffle=True, pin_memory=True)
+    val_loader = DataLoader(val_dataset, batch_size=batch_size, collate_fn=collate_fn, num_workers=2, shuffle=True, pin_memory=True)
 
     for epoch in range(epochs):
         print(f"Starting epoch {epoch+1}/{epochs}")
