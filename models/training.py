@@ -172,7 +172,7 @@ if __name__ == '__main__':
 
     epochs = 12
     lr = 1e-3
-    batch_size = 2
+    batch_size = 16
     optimizer = optim.Adam(model.parameters(), lr=lr)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=3)
     early_stopping = True
