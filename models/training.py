@@ -9,8 +9,8 @@ from tqdm import tqdm
 import matplotlib.pyplot as plt
 
 def custom_msle_loss(y_true, y_pred): # to change after for efficiency
-    y_true = torch.exp(y_true) - 1
-    y_pred = torch.exp(y_pred) - 1
+    y_true = torch.exp(y_true)
+    y_pred = torch.exp(y_pred)
     return torch.mean((torch.log1p(y_true) - torch.log1p(y_pred))**2)
 
 def train_model(model, train_dataset, val_dataset, epochs=5, lr=1e-3, batch_size=2, optimizer=None, scheduler=None, early_stopping=False, patience=5):
@@ -175,7 +175,7 @@ if __name__ == '__main__':
     lr = 1e-3
     batch_size = 16
     optimizer = optim.Adam(model.parameters(), lr=lr)
-    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=3)
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=2)
     early_stopping = True
     patience = 5
 
