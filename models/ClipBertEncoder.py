@@ -7,6 +7,7 @@ class ClipBertEncoder(nn.Module):
     def __init__(self, frozen=False):
         super().__init__()
 
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.img_model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32") # multimodal but we only use the image part
         self.img_processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 
@@ -40,12 +41,16 @@ class ClipBertEncoder(nn.Module):
         
     def encode_image(self, images):
         inputs = self.img_processor(images=images, return_tensors="pt", do_rescale=False) # processes the images (already scaled in dataset)
+        # Move inputs to the same device as the model
+        inputs = {k: v.to(self.img_model.device) for k, v in inputs.items()}
+        # Get image features
+
         img_feat = self.img_model.get_image_features(**inputs)
         return img_feat
     
     def encode_title(self, titles):
         encoded_titles = self.text_model.encode(titles) # returns a numpy array by default
-        return torch.tensor(encoded_titles).float() 
+        return torch.tensor(encoded_titles).float().to(self.device)
     
     def encode_description(self, descriptions):
     # Convert None values to empty strings and handle list of descriptions
@@ -59,7 +64,7 @@ class ClipBertEncoder(nn.Module):
             truncation=True,    # Truncate sequences that are too long
             max_length=512      # Specify maximum length (BERT's limit is 512)
         )
-        
+        encoded_input = {k: v.to(self.device) for k, v in encoded_input.items()}
         output = self.descmodel(**encoded_input)
         
         desc_features = output.last_hidden_state.mean(dim=1)
