@@ -2,16 +2,16 @@ from ClipBertViewPredictor import ClipBertViewPredictor
 from DatasetCreator import Dataset
 from YouTubeDataset import YouTubeDataset
 import torch
+import pandas as pd
 from torch.utils.data import DataLoader
 from torch import optim
 import numpy as np
 from tqdm import tqdm 
 import matplotlib.pyplot as plt
-import pandas as pd
 
 def custom_msle_loss(y_true, y_pred): # to change after for efficiency
-    y_true = torch.exp(y_true)
-    y_pred = torch.exp(y_pred)
+    y_true = torch.exp(y_true) - 1
+    y_pred = torch.exp(y_pred) - 1
     return torch.mean((torch.log1p(y_true) - torch.log1p(y_pred))**2)
 
 def train_model(model, train_dataset, val_dataset, epochs=5, lr=1e-3, batch_size=2, optimizer=None, scheduler=None, early_stopping=False, patience=5):
@@ -46,7 +46,7 @@ def train_model(model, train_dataset, val_dataset, epochs=5, lr=1e-3, batch_size
     best_val_loss = float('inf')
     counter = 0 # Early stopping counter
 
-    val_loader = DataLoader(val_dataset, batch_size=batch_size, collate_fn=collate_fn, num_workers=2, shuffle=True, pin_memory=True)
+    val_loader = DataLoader(val_dataset, batch_size=batch_size, collate_fn=collate_fn, num_workers=4, shuffle=True, pin_memory=True)
 
     for epoch in range(epochs):
         print(f"Starting epoch {epoch+1}/{epochs}")
@@ -61,7 +61,7 @@ def train_model(model, train_dataset, val_dataset, epochs=5, lr=1e-3, batch_size
             targets = batch["target"].to(device)
 
             optimizer.zero_grad()
-            outputs = model(inputs).view(-1)
+            outputs = model(inputs).squeeze() # Why ?
             loss = criterion(outputs, targets)
             loss.backward()
             optimizer.step()
@@ -116,10 +116,9 @@ def train_model(model, train_dataset, val_dataset, epochs=5, lr=1e-3, batch_size
                     print(f"Early stopping at epoch {epoch+1}/{epochs}")
                     break
 
-        print(f"Epoch {epoch+1}/{epochs} - Validation Loss: {avg_val_loss:.4f} - Learning Rate: {optimizer.param_groups[0]['lr']:.6f}")
+        print(f"Epoch {epoch+1}/{epochs} - Validation Loss: {avg_val_loss:.4f}")
     
     return training_losses, validation_losses
-
 
 def predict_and_save(model, test_dataset, batch_size=8):
 
@@ -162,67 +161,25 @@ def predict_and_save(model, test_dataset, batch_size=8):
     df.to_csv("./artifacts/results.csv", index=False)
     print(f"Submission saved")
 
-# def test_model(model, dataset, batch_size=2):
-
-#     losses = []
-
-#     print("Testing model...")
-#     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-#     model = model.to(device)
-#     model.eval()
-
-#     # Custom collate function
-#     def collate_fn(batch):
-#         return {
-#             "image": torch.stack([x["image"] for x in batch]),  # Use stack instead of cat
-#             "title": [x["title"] for x in batch],
-#             "description": [x["description"] for x in batch],
-#             "tabular": torch.stack([x["tabular"] for x in batch]),
-#             "target": torch.stack([x["target"] for x in batch])
-#         }
-
-#     loader = DataLoader(dataset, batch_size=batch_size, collate_fn=collate_fn, num_workers=4, shuffle=False, pin_memory=True)
-#     all_targets = []
-#     all_predictions = []
-
-#     with torch.no_grad():
-#         progress_bar = tqdm(loader, desc="Validating")
-#         for batch in progress_bar:
-#             inputs = {k: v.to(device) if isinstance(v, torch.Tensor) else v 
-#                       for k, v in batch.items() if k != "target"}
-#             targets = batch["target"].to(device)
-
-#             outputs = model(inputs).squeeze()
-
-#             all_targets.extend(targets.cpu().numpy())
-#             all_predictions.extend(outputs.cpu().numpy())
-
-#     test_msle = custom_msle_loss(all_targets, all_predictions)
-#     print(f"Test MSLE: {test_msle:.4f}")
-#     losses.append(test_msle)
-#     return {
-#         "msle": test_msle,
-#         "predictions": all_predictions,
-#         "targets": all_targets
-#     }, losses
 
 if __name__ == '__main__':
     # Train and test
-    ratio = 0.5
+    ratio = 0.1
     training_data = YouTubeDataset(ratio=ratio, csv_path="./dataset/processed_training_set.csv", root_dir="./dataset/train_val/")
-    val_data = YouTubeDataset("./dataset/processed_validation_set.csv", "./dataset/train_val/", ratio=0.3)
-    model = ClipBertViewPredictor(frozen=True)
+    val_data = YouTubeDataset("./dataset/processed_validation_set.csv", "./dataset/train_val/", ratio=ratio)
+    test_data = YouTubeDataset("./dataset/processed_test_set.csv", "./dataset/test/", training = False)
+    model = ClipBertViewPredictor()
 
-    epochs = 12
+    epochs = 1
     lr = 1e-3
     batch_size = 16
     optimizer = optim.Adam(model.parameters(), lr=lr)
-    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=2)
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=3)
     early_stopping = True
     patience = 5
 
     train_losses, val_losses = train_model(model, training_data, val_data, optimizer=optimizer, scheduler=scheduler, epochs=epochs, batch_size=batch_size, early_stopping=early_stopping, patience=patience)
-
+    predict_and_save(model, test_data)
     plt.plot(range(len(train_losses)), train_losses, label='Train Loss', color='blue')
     plt.plot(range(len(val_losses)), val_losses, label='Val Loss', color='red')
     plt.xlabel('Epochs')

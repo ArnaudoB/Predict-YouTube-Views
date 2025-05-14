@@ -29,6 +29,8 @@ class ClipBertEncoder(nn.Module):
                 param.requires_grad = False
             for param in self.text_model.parameters():
                 param.requires_grad = False
+            for param in self.descmodel.parameters():
+                param.requires_grad = False
         
         # Project description embeddings to match CLIP dimensions
         self.desc_projector = nn.Linear(self.desc_dim, self.img_dim)
