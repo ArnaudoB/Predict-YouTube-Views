@@ -12,7 +12,7 @@ def custom_msle_loss(y_true, y_pred): # to change after for efficiency
     y_pred = torch.exp(y_pred) - 1
     return torch.mean((torch.log1p(y_true) - torch.log1p(y_pred))**2)
 
-def train_model(model, train_dataset, val_dataset, epochs=20, lr=1e-4, batch_size=32):
+def train_model(model, train_dataset, val_dataset, epochs=5, lr=1e-3, batch_size=2):
 
     training_losses = []
     validation_losses = []
@@ -97,7 +97,7 @@ def train_model(model, train_dataset, val_dataset, epochs=20, lr=1e-4, batch_siz
 
 
 
-def test_model(model, dataset, batch_size=32):
+def test_model(model, dataset, batch_size=2):
 
     losses = []
 
