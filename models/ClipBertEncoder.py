@@ -39,19 +39,29 @@ class ClipBertEncoder(nn.Module):
         )
         
     def encode_image(self, images):
-        inputs = self.img_processor(images=images, return_tensors="pt")
+        inputs = self.img_processor(images=images, return_tensors="pt", do_rescale=False) # processes the images (already scaled in dataset)
         img_feat = self.img_model.get_image_features(**inputs)
         return img_feat
     
     def encode_title(self, titles):
-        encoded_titles = self.text_model.encode(titles)
-        return encoded_titles
+        encoded_titles = self.text_model.encode(titles) # returns a numpy array by default
+        return torch.tensor(encoded_titles).float() 
     
     def encode_description(self, descriptions):
-
-        encoded_input = self.tokenizer(descriptions, return_tensors='pt')
+    # Convert None values to empty strings and handle list of descriptions
+        descriptions = [str(desc) if desc is not None else "" for desc in descriptions]
+        
+        # Add truncation and padding parameters
+        encoded_input = self.tokenizer(
+            descriptions, 
+            return_tensors='pt', 
+            padding=True,       # Add padding to make all sequences the same length
+            truncation=True,    # Truncate sequences that are too long
+            max_length=512      # Specify maximum length (BERT's limit is 512)
+        )
+        
         output = self.descmodel(**encoded_input)
-
+        
         desc_features = output.last_hidden_state.mean(dim=1)
         desc_features = self.desc_projector(desc_features)
         return desc_features

@@ -14,11 +14,6 @@ class Dataset():
     
     def create_dataset(self):
 
-        transform = transforms.Compose([
-        transforms.Resize(224),
-        transforms.CenterCrop(224),
-        transforms.ToTensor(),  # → met l'image dans [0,1]
-        ])
         #_, preprocess = clip.load("ViT-B/32", device="cuda" if torch.cuda.is_available() else "cpu")
         df = pd.read_csv(self.set, sep=";")
 
@@ -32,7 +27,7 @@ class Dataset():
             image = Image.open("./dataset/train_val/"+row['id']+".jpg").convert("RGB")
 
             sample = {
-                "image": transform(image),
+                "image": transforms.ToTensor()(image),
                 "title": row['title'],
                 "description": row['description'],
                 "tabular": torch.tensor(row[tabular_columns].values.astype(np.float32)),
