@@ -115,7 +115,7 @@ def train_model(model, train_dataset, val_dataset, epochs=5, lr=1e-3, batch_size
                     print(f"Early stopping at epoch {epoch+1}/{epochs}")
                     break
 
-        print(f"Epoch {epoch+1}/{epochs} - Validation Loss: {avg_val_loss:.4f}")
+        print(f"Epoch {epoch+1}/{epochs} - Validation Loss: {avg_val_loss:.4f} - Learning Rate: {optimizer.param_groups[0]['lr']:.6f}")
     
     return training_losses, validation_losses
 
@@ -168,14 +168,14 @@ if __name__ == '__main__':
     # Train and test
     ratio = 0.5
     training_data = YouTubeDataset(ratio=ratio, csv_path="./dataset/processed_training_set.csv", root_dir="./dataset/train_val/")
-    val_data = YouTubeDataset("./dataset/processed_validation_set.csv", "./dataset/train_val/", ratio=ratio)
+    val_data = YouTubeDataset("./dataset/processed_validation_set.csv", "./dataset/train_val/", ratio=0.3)
     model = ClipBertViewPredictor()
 
     epochs = 12
     lr = 1e-3
     batch_size = 16
     optimizer = optim.Adam(model.parameters(), lr=lr)
-    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=3)
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=3)
     early_stopping = True
     patience = 5
 
