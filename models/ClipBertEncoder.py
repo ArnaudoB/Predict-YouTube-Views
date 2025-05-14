@@ -1,13 +1,17 @@
 import torch
 import torch.nn as nn
 import clip
-from transformers import AutoTokenizer, AutoModel
+from transformers import AutoTokenizer, AutoModel, CLIPProcessor, CLIPModel
 
 class ClipBertEncoder(nn.Module):
     def __init__(self, frozen=False):
         super().__init__()
 
-        self.clip_model, self.clip_preprocess = clip.load("ViT-B/32") # for image and title processing
+        self.mclip_model = CLIPModel.from_pretrained("M-CLIP/M-BERT-Base-ViT-B") 
+        self.mclip_processor = CLIPProcessor.from_pretrained("M-CLIP/M-BERT-Base-ViT-B")
+        
+        
+        #self.clip_model, self.clip_preprocess = clip.load("ViT-B/32") # for image and title processing
         
         
         self.text_model = AutoModel.from_pretrained("bert-base-multilingual-cased")
@@ -17,8 +21,8 @@ class ClipBertEncoder(nn.Module):
         # self.text_tokenizer = AutoTokenizer.from_pretrained("distilbert-base-uncased")
         
         # Get dimensions
-        self.img_dim = self.clip_model.visual.output_dim  # 512 for ViT-B/32
-        self.title_dim = self.img_dim  # CLIP text and image dimensions match
+        self.img_dim = self.mclip_model.vision_model.config.hidden_size  # 768 for ViT-B
+        self.title_dim = self.mclip_model.text_model.config.hidden_size  # 768 for M-BERT
         self.desc_dim = self.text_model.config.hidden_size  # 768 for BERT
         
         # Freeze backbone models if specified
