@@ -126,8 +126,8 @@ if __name__ == '__main__':
     # Train and test
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     ratio = 1.0
-    training_data = ResBertDataset(ratio=ratio, csv_path="./dataset/processed_training_set_with_every_channel.csv", root_dir="./dataset/train_val/")
-    val_data = ResBertDataset("./dataset/processed_validation_set_with_every_channel.csv", "./dataset/train_val/", ratio=1.0)
+    training_data = ResBertDataset(ratio=ratio, csv_path="./dataset/processed_training_set_witheverychannel.csv", root_dir="./dataset/train_val/")
+    val_data = ResBertDataset("./dataset/processed_validation_set_witheverychannel.csv", "./dataset/train_val/", ratio=1.0)
     model = ResBert(freeze_bert=False, semifreeze_bert=True, freeze_resnet=False, semifreeze_resnet=True).to(device)
     model.load_state_dict(torch.load('./models/ResBert/best_model_ResBert_bertfrozen256.pth'))
 
@@ -154,7 +154,7 @@ if __name__ == '__main__':
     # lr = 1e-2
     # optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=1e-5)
     # scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=2, min_lr=1e-4)
-    epochs = 10
+    epochs = 5
     batch_size = 64
     early_stopping = True
     patience = 3

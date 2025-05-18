@@ -12,7 +12,7 @@ class ResBertDataset(Dataset):
         self.root_dir = root_dir
         self.is_test = is_test
 
-        self.date_columns = [str(i) for i in range(2012, 2026)] + ['sin_month', 'cos_month', 'sin_dayofmonth', 'cos_dayofmonth', 'sin_hour', 'cos_hour', 'sin_dayofweek', 'cos_dayofweek', 'sin_dayofyear', 'cos_dayofyear']
+        self.date_columns = ['year'] + ['sin_month', 'cos_month', 'sin_dayofmonth', 'cos_dayofmonth', 'sin_hour', 'cos_hour', 'sin_dayofweek', 'cos_dayofweek', 'sin_dayofyear', 'cos_dayofyear']
         self.channel_columns = [col for col in self.df.columns if col not in ['title', 'description', 'id', 'logviews', 'views'] and col not in self.date_columns]
 
         weights = ResNet50_Weights.IMAGENET1K_V2

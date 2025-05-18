@@ -10,12 +10,13 @@ class FusionMLP(nn.Module):
             nn.LayerNorm(input_dim//2),
             nn.Dropout(dropout),
 
-            nn.Linear(input_dim//2, input_dim//4), # 256*2 -> 256
+
+            nn.Linear(256*2, 128), # 256*2 -> 128
             nn.ReLU(),
-            nn.LayerNorm(input_dim//4),
+            nn.LayerNorm(128),
             nn.Dropout(dropout),
 
-            nn.Linear(input_dim//4, 64), # 256 -> 64
+            nn.Linear(128, 64), # 128 -> 64
             nn.ReLU(),
             nn.LayerNorm(64),
             nn.Dropout(dropout),
