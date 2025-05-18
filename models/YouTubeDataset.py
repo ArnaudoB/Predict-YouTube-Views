@@ -6,12 +6,13 @@ import numpy as np
 from torchvision import transforms
 
 class YouTubeDataset(Dataset):
-    def __init__(self, csv_path="./dataset/processed_training_set.csv", root_dir="./dataset/train_val/", ratio=1.0):
+    def __init__(self, csv_path="./dataset/processed_training_set.csv", root_dir="./dataset/train_val/", ratio=1.0, is_test=False):
         self.df = pd.read_csv(csv_path, sep=";")
         self.df = self.df.sample(frac=ratio, random_state=42)
         self.root_dir = root_dir
+        self.is_test = is_test
 
-        self.tabular_columns = [col for col in self.df.columns if col not in ['title', 'description', 'id', 'logviews']]
+        self.tabular_columns = [col for col in self.df.columns if col not in ['title', 'description', 'id', 'logviews', 'views']]
 
         self.transform = transforms.ToTensor()
     
@@ -22,14 +23,24 @@ class YouTubeDataset(Dataset):
         row = self.df.iloc[idx]
         image_path = f"{self.root_dir}/{row['id']}.jpg"
         image = Image.open(image_path).convert("RGB")
-        image = self.transform(image)
+        #image = self.transform(image)
 
-        sample = {
-            "image": image,
-            "title": row["title"],
-            "description": row["description"],
-            "tabular": torch.tensor(row[self.tabular_columns].values.astype(np.float32)),
-            "target": torch.tensor(row["logviews"], dtype=torch.float32)
-        }
+        if not self.is_test:
+            sample = {
+                "image": image,
+                "title": row["title"],
+                "description": row["description"],
+                "tabular": torch.tensor(row[self.tabular_columns].values.astype(np.float32)),
+                #"target": torch.tensor(row["logviews"], dtype=torch.float32)
+                "target": torch.tensor(row["views"], dtype=torch.float32), # Try to predict views instead of logviews
+            }
+        else:
+            sample = {
+                "image": image,
+                "title": row["title"],
+                "description": row["description"],
+                "tabular": torch.tensor(row[self.tabular_columns].values.astype(np.float32)),
+                "id": row["id"]
+            }
 
         return sample
