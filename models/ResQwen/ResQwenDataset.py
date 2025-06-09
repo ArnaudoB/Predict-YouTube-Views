@@ -6,7 +6,7 @@ import numpy as np
 from torchvision.models import ResNet50_Weights
 
 class ResQwenDataset(Dataset):
-    def __init__(self, csv_path="./dataset/final_training_set.csv", root_dir="./dataset/train_val/", ratio=1.0, is_test=False):
+    def __init__(self, csv_path="./dataset/final_train_set.csv", root_dir="./dataset/train_val/", ratio=1.0, is_test=False):
         self.df = pd.read_csv(csv_path, sep=";")
 
         self.df = self.df.sample(frac=ratio, random_state=42)
@@ -14,8 +14,8 @@ class ResQwenDataset(Dataset):
         self.root_dir = root_dir
         self.is_test = is_test
 
-        self.date_columns = ['year'] + ['sin_month', 'cos_month', 'sin_dayofmonth', 'cos_dayofmonth', 'sin_hour', 'cos_hour', 'sin_dayofweek', 'cos_dayofweek', 'sin_dayofyear', 'cos_dayofyear']
-        self.channel_columns = [col for col in self.df.columns if col not in ['title', 'description', 'id', 'logviews', 'views', 'normalized_logviews'] and col not in self.date_columns]
+        self.dates_and_metadata_columns = ['year'] + ['sin_month', 'cos_month', 'sin_dayofmonth', 'cos_dayofmonth', 'sin_hour', 'cos_hour', 'sin_dayofweek', 'cos_dayofweek', 'sin_dayofyear', 'cos_dayofyear', "hashtag_count","link_count"]
+        self.channel_columns = [col for col in self.df.columns if col not in ['title', 'description', 'id', 'logviews', 'views', 'normalized_logviews',"hashtag_count","link_count"] and col not in self.dates_and_metadata_columns]
 
         weights = ResNet50_Weights.IMAGENET1K_V2
         self.transform = weights.transforms()
@@ -34,7 +34,7 @@ class ResQwenDataset(Dataset):
                 "image": image,
                 "title": row["title"],
                 "channel": torch.tensor(row[self.channel_columns].values.astype(np.float32)),
-                "date": torch.tensor(row[self.date_columns].values.astype(np.float32)),
+                "date": torch.tensor(row[self.dates_and_metadata_columns].values.astype(np.float32)),
                 "target": torch.tensor(row["logviews"], dtype=torch.float32),
             }
         else:
@@ -42,7 +42,7 @@ class ResQwenDataset(Dataset):
                 "image": image,
                 "title": row["title"],
                 "channel": torch.tensor(row[self.channel_columns].values.astype(np.float32)),
-                "date": torch.tensor(row[self.date_columns].values.astype(np.float32)),
+                "date": torch.tensor(row[self.dates_and_metadata_columns].values.astype(np.float32)),
                 "id": row["id"]
             }
 

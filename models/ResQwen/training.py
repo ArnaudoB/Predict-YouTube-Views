@@ -29,7 +29,7 @@ def custom_msle_loss(y_true, y_pred):
 
 
 
-def train_model(model, lr, train_dataset=ResQwenDataset(ratio=1.0, csv_path="./dataset/final_training_set.csv", root_dir="./dataset/train_val/"),
+def train_model(model, lr, train_dataset=ResQwenDataset(ratio=1.0, csv_path="./dataset/final_train_set.csv", root_dir="./dataset/train_val/"),
                  val_dataset=ResQwenDataset("./dataset/validation_set.csv", "./dataset/train_val/", ratio=1.0),
                  custom_test=ResQwenDataset("./dataset/test_set.csv", "./dataset/train_val/", ratio=1.0),
                  batch_size=128, 
