@@ -17,7 +17,7 @@ class RegressorHead(nn.Module):
             nn.ReLU(),
             nn.Dropout(dropout),
 
-            nn.Linear(input_dim // 8, 1) # 67 -> 1
+            nn.Linear(input_dim // 8, output_dim) # 67 -> 1
             
         )
 

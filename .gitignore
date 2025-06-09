@@ -3,3 +3,4 @@ CSC_43M04_EP_challenge/
 __pycache__/
 *.pth
 predictions*.csv
+qwen_ckpt/

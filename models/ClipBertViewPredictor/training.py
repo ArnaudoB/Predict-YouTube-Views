@@ -7,7 +7,7 @@ from tqdm import tqdm
 import matplotlib.pyplot as plt
 
 def custom_msle_loss(y_true, y_pred): 
-    return torch.mean((torch.log1p(y_pred) - torch.log1p(y_true))**2)
+    return torch.mean((y_true - y_pred)**2)
 
 def train_model(model, train_dataset, val_dataset, epochs=5, lr=1e-3, batch_size=2, optimizer=None, scheduler=None, early_stopping=False, patience=5):
 
